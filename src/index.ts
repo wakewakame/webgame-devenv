@@ -12,7 +12,7 @@ const init = async () => {
 
   // RAPIER
   await RAPIER.init();
-  const world = new RAPIER.World({ x: 0.0, y: -9.81, z: 0.0 });
+  const world = new RAPIER.World({ x: 0.0, y: -9.81 * 2, z: 0.0 });
 
   // DOM
   const container = document.getElementById("container") as HTMLDivElement;
@@ -67,10 +67,23 @@ const init = async () => {
   physicsMeshes.addCube(0.1, 100, 10, 'fixed').setPosition(-5, 50, 0);
   physicsMeshes.addCube(10, 100, 0.1, 'fixed').setPosition(0, 50, 5);
   physicsMeshes.addCube(10, 100, 0.1, 'fixed').setPosition(0, 50, -5);
-  [...Array(100).keys()].map(index => physicsMeshes.addCube(1, 1, 1, 'dynamic').setPosition(Math.sin(index) * 0.1, 1.01 * index, Math.cos(index) * 0.1));
+  const cube = physicsMeshes.addCube(1, 1, 1, 'dynamic').setPosition(0, 1.5, 0);
+
+  let floatForce = false;
+  let floatForceNum = 0.0;
+  document.addEventListener("keydown", e => {
+    if (e.key === " ") { floatForce = true; }
+  });
+  document.addEventListener("keyup", e => {
+    if (e.key === " ") { floatForce = false; }
+  });
 
   // main loop
   const animate = () => {
+    cube.rigidBody.resetForces(true);
+    if (floatForce) floatForceNum += (9.81 * 3 - floatForceNum) * 0.1;
+    else floatForceNum *= 0.95;
+    cube.rigidBody.addForce(new RAPIER.Vector3(0, floatForceNum, 0), true);
     physicsMeshes.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
